@@ -1,6 +1,6 @@
 # published Url
 
-### https://job-react-yellowsence-assignment.netlify.app/
+### https://job-react-yellowsence-assignment.netlify.app
 
 # Getting Started with Create React App
 
