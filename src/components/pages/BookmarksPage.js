@@ -71,7 +71,7 @@ const JobCard = ({ job }) => {
 function BookmarksPage() {
   const [bookmarkedJobs, setBookmarkedJobs] = useState(()=>{
     const localStorageData = localStorage.getItem("bookmarkedJobs");
-    return JSON.parse(localStorageData)
+    return localStorageData ? JSON.parse(localStorageData) : [];
   });
     console.log("bookmarkedJobs ",bookmarkedJobs)
   const [page, setPage] = useState(1);   

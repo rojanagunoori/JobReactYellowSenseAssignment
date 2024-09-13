@@ -13,25 +13,62 @@ const JobCard = ({ job, toggleBookmark, bookmarkedJobs }) => {
 
 
   const handleDoubleClick = () => {
-    setIsBookmarked(true);
+   // setIsBookmarked(true);
     setShowBookmarkIcon(true);
     toggleBookmark(job);
-    setIsBookmarked(!isBookmarked);
+   // setIsBookmarked(!isBookmarked);
+    setIsBookmarked(prev => !prev);
 
     setTimeout(() => {
       setShowBookmarkIcon(false);
     }, 1000);
   };
+  /*
+
+  useEffect(() => {
+   
+    console.log("Current job:", job);
+    console.log("Bookmarked jobs:", bookmarkedJobs);
+  
+    
+    const localStorageData = localStorage.getItem("bookmarkedJobs");
+    const parsedData = localStorageData ? JSON.parse(localStorageData) : [];
+  console.log("parsedData ",parsedData)
+   
+   // const checked = parsedData.some(bookmarkedJob => bookmarkedJob.id === job.id);
+   // console.log("Is bookmarked:", checked);
+  
+   // setIsBookmarked(checked);
+  }, [job, bookmarkedJobs]);
+
+
+  useEffect(() => {
+    const isBookmarkedJob = bookmarkedJobs.some(bookmarkedJob => 
+      JSON.stringify(bookmarkedJob) === JSON.stringify(job)
+    );
+   // console.log("isBookmarkedJob checked ",isBookmarkedJob)
+    setIsBookmarked(isBookmarkedJob);
+  }, [job, bookmarkedJobs]);
 
   
 
   useEffect(() => {
-    
-    setIsBookmarked(bookmarkedJobs.some(bookmarkedJob => bookmarkedJob.id === job.id));
-    bookmarkedJobs.some(bookmarkedJob => console.log(bookmarkedJob.id === job.id))
+    const checked=bookmarkedJobs.some(bookmarkedJob => bookmarkedJob.id === job.id)
+   // setIsBookmarked(bookmarkedJobs.some(bookmarkedJob => bookmarkedJob.id === job.id));\
+   setIsBookmarked(checked)
+   // bookmarkedJobs.some(bookmarkedJob => console.log(bookmarkedJob.id === job.id))
   }, [job.id, bookmarkedJobs]);
 
-  
+  console.log("isBookmarked ",isBookmarked )
+  */
+
+  useEffect(() => {
+    const savedBookmarks = JSON.parse(localStorage.getItem('bookmarkedJobs') || '[]');
+    const isBookmarkedJob = savedBookmarks.some(bookmarkedJob => bookmarkedJob.id === job.id);
+    setIsBookmarked(isBookmarkedJob);
+  }, [job]);
+
+
 
   return (
     <>
@@ -48,7 +85,7 @@ const JobCard = ({ job, toggleBookmark, bookmarkedJobs }) => {
         <h2 className="text-xl font-semibold ">{job?.title}</h2>
         <button
           onClick={handleDoubleClick}
-          className={`focus:outline-none ${isBookmarked ? 'text-yellow-500' : 'text-gray-400'} transition-colors duration-300`}
+          className={`focus:outline-none ${(isBookmarked) ? 'text-yellow-500' : 'text-gray-400'} transition-colors duration-300`}
         >
           {isBookmarked ? <FaBookmark size={24} /> : <FaRegBookmark size={24} />}
         </button>
@@ -94,10 +131,11 @@ function JobsPage() {
     try {
       const response = await axios.get(`https://testapi.getlokalapp.com/common/jobs?page=${page}`);
       const newJobs = response.data.results.filter(job => job.id != null); 
+      const savedBookmarks = JSON.parse(localStorage.getItem('bookmarkedJobs') || '[]');
 
-
+      setJobs(prevJobs => [...prevJobs, ...newJobs]);
       //localStorage.setItem('jobs', JSON.stringify([...jobs, ...newJobs]));
-      Cookies.set('jobs', JSON.stringify([...jobs, ...newJobs]), { expires: 7, path: '/' });
+      Cookies.set('jobs', JSON.stringify([...savedBookmarks,...jobs, ...newJobs]), { expires: 7, path: '/' });
 
       if (newJobs.length === 0) {
         setHasMore(false);
@@ -120,16 +158,22 @@ function JobsPage() {
 
 
   const toggleBookmark = (job) => {
-    const isBookmarked = bookmarkedJobs.some(bookmarkedJob => bookmarkedJob.id === job.id);
-    console.log("toggleBookmark isBookmarked",isBookmarked)
+    const existingBookmarks = JSON.parse(localStorage.getItem('bookmarkedJobs') || '[]');
+    const isBookmarked = existingBookmarks.some(bookmarkedJob => bookmarkedJob.id === job.id);
+    
+    //const isBookmarked = bookmarkedJobs.some(bookmarkedJob => bookmarkedJob.id === job.id);
+    //console.log("toggleBookmark isBookmarked",isBookmarked)
     let updatedBookmarks;
 
     if (isBookmarked) {
-      updatedBookmarks = bookmarkedJobs.filter(bookmarkedJob => bookmarkedJob.id !== job.id); // Remove job
+      updatedBookmarks = existingBookmarks.filter(bookmarkedJob => bookmarkedJob.id !== job.id); 
+      //updatedBookmarks = bookmarkedJobs.filter(bookmarkedJob => bookmarkedJob.id !== job.id); 
     } else {
-      updatedBookmarks = [...bookmarkedJobs, job]; 
+      updatedBookmarks = [...existingBookmarks, job]; 
+     // updatedBookmarks = [...bookmarkedJobs, job]; 
     }
-
+    //const savedBookmarks = JSON.parse(localStorage.getItem('bookmarkedJobs') || '[]');
+    //updatedBookmarks=[...savedBookmarks,...updatedBookmarks]
 
     setBookmarkedJobs(updatedBookmarks);
 
@@ -138,8 +182,8 @@ function JobsPage() {
     Cookies.set('bookmarkedJobs', JSON.stringify(updatedBookmarks), { expires: 7, path: '/' });
 
 
-    console.log("Updated Bookmarks: ", updatedBookmarks);
-    console.log("Stored cookie (raw):", Cookies.get('bookmarkedJobs'));
+   // console.log("Updated Bookmarks: ", updatedBookmarks);
+   // console.log("Stored cookie (raw):", Cookies.get('bookmarkedJobs'));
   };
 
   const loadMoreJobs = () => {
@@ -150,11 +194,11 @@ function JobsPage() {
 
   useEffect(() => {
     const storedJobs = JSON.parse(localStorage.getItem('jobs') || '[]');
-    console.log("storedJobs: ", storedJobs);
+  //  console.log("storedJobs: ", storedJobs);
     const matchingJobs = jobs.filter(newJob =>
       storedJobs.some(storedJob => storedJob.id === newJob.id)
     );
-    console.log("Matching Jobs: ", matchingJobs);
+   // console.log("Matching Jobs: ", matchingJobs);
   }, [jobs])
   
 
